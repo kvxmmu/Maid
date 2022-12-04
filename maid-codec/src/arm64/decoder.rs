@@ -1,7 +1,11 @@
 use {
-    super::error::DecodeError,
+    super::{
+        detail::*,
+        error::DecodeError,
+    },
     crate::instruction::Instruction,
     maid_utils::{
+        block::*,
         cold_err,
         cold_path,
     },
@@ -16,20 +20,38 @@ pub struct BufferedDecoder<'a> {
 
 impl<'a> BufferedDecoder<'a> {
     pub const fn try_peek(&self) -> DecodeResult<Instruction> {
-        let block = match self.try_peek_u32() {
+        let block = Block::new(match self.try_peek_u32() {
             Ok(b) => b,
             Err(DecodeError::InvalidLengthOfData { length }) => {
-                return Ok(Instruction::Unallocated {
+                return Ok(Instruction::UnallocatedSpan {
                     span: self.advanced..(self.advanced + length),
                 });
             }
 
             Err(e) => return Err(e),
-        };
+        });
 
-        todo!()
+        Ok(match block.take_from_u32(25, 4) {
+            0b0000 => reserved::decode(block),
+            0b0010 => sve_encodings::decode(block),
+
+            0b1000 | 0b1001 => data_processing_imm::decode(block),
+            0b1010 | 0b1011 => branches_exc_sys::decode(block),
+
+            0b0100 | 0b0110 | 0b1100 | 0b1110 => {
+                loads_and_stores::decode(block)
+            }
+
+            0b0101 | 0b1101 => data_processing_register::decode(block),
+            0b0111 | 0b1111 => data_processing_fp_simd::decode(block),
+
+            0b0001 | 0b011 => Instruction::Unallocated { block },
+            _ => todo!(),
+        })
     }
+}
 
+impl<'a> BufferedDecoder<'a> {
     pub fn decode_next(&mut self) -> DecodeResult<Instruction> {
         let result = self.try_peek();
         self.advance_by(4);
@@ -55,7 +77,7 @@ impl<'a> BufferedDecoder<'a> {
     }
 }
 
-impl<'a> BufferedDecoder<'a> {
+impl BufferedDecoder<'_> {
     pub const fn try_peek_u32(&self) -> DecodeResult<u32> {
         match self.buffer.len() {
             0 => cold_err(DecodeError::EndOfData),

@@ -1,7 +1,6 @@
-use {
-    crate::arm64::block::Block,
-    std::ops::Range,
-};
+use maid_utils::block::*;
+
+pub type BufSpan = std::ops::Range<usize>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegisterType {
@@ -12,5 +11,10 @@ pub enum RegisterType {
 #[derive(Debug)]
 pub enum Instruction {
     Udf,
-    Unallocated { span: Range<usize> },
+
+    AdrpImm { imm: u64, rd: u8 },
+    AdrImm { imm: u64, rd: u8 },
+
+    Unallocated { block: Block },
+    UnallocatedSpan { span: BufSpan },
 }
