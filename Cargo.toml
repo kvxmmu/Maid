@@ -1,2 +1,2 @@
 [workspace]
-members = ["maid-codec"]
+members = ["maid-codec", "maid-utils"]
