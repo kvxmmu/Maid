@@ -34,7 +34,7 @@ impl Block {
     }
 
     pub const fn take_from_to_u32(self, from: u32, to: u32) -> u32 {
-        self.take_from_u32(from, to - from)
+        self.take_from_u32(from, to - from + 1)
     }
 
     pub const fn take_from_to(self, from: u32, to: u32) -> Self {
@@ -45,7 +45,7 @@ impl Block {
         if count == 0 {
             0
         } else {
-            let mask = 1 << count;
+            let mask = 1 << (count - 1);
             (self.inner >> from) & ((mask - 1) | mask)
         }
     }

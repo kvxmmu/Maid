@@ -1,7 +1,14 @@
 use crate::{
     block::Block,
+    replicate2_32,
     utils::sign_extend64,
 };
+
+#[test]
+fn test_replicate2_32() {
+    assert_eq!(replicate2_32(0b10), 0xAA_AA_AA_AA);
+    assert_eq!(replicate2_32(0b11), 0xFF_FF_FF_FF);
+}
 
 #[test]
 fn test_sext64() {
