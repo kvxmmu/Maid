@@ -1,6 +1,9 @@
-use std::{
-    mem,
-    slice,
+use {
+    static_assertions::{
+        assert_eq_align,
+        assert_eq_size,
+    },
+    std::slice,
 };
 
 #[repr(transparent)]
@@ -31,7 +34,7 @@ impl Block {
     }
 
     pub const fn take_from_to_u32(self, from: u32, to: u32) -> u32 {
-        self.take_from_u32(from, to + 1 - from)
+        self.take_from_u32(from, to - from)
     }
 
     pub const fn take_from_to(self, from: u32, to: u32) -> Self {
@@ -46,7 +49,9 @@ impl Block {
             (self.inner >> from) & ((mask - 1) | mask)
         }
     }
+}
 
+impl Block {
     pub const fn from_u32_slice(u32_slice: &[u32]) -> &[Block] {
         // SAFETY: since `Block` is declared as transparent to u32,
         // so, casting from underlying type to wrapped `Block` is
@@ -57,14 +62,9 @@ impl Block {
         // slice types which exact layout is not specified.
 
         // This is necessary because we **must** ensure that
-        // `Block` and `u32` has same layout. Silently stealed from
-        // `static_assertions` crate will be replaced with
-        // macroses from it if I will write code like that more than
-        // once
-        const _: [(); 0] =
-            [(); mem::size_of::<Block>() - mem::size_of::<u32>()];
-        const _: [(); 0] =
-            [(); mem::align_of::<Block>() - mem::align_of::<u32>()];
+        // `Block` and `u32` has same layout.
+        assert_eq_align!(Block, u32);
+        assert_eq_size!(Block, u32);
 
         unsafe {
             slice::from_raw_parts(
@@ -73,7 +73,9 @@ impl Block {
             )
         }
     }
+}
 
+impl Block {
     pub const fn into_inner(self) -> u32 {
         self.inner
     }

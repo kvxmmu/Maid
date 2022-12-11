@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 maid-utils = { path = "../maid-utils" }
+static_assertions = { workspace = true }

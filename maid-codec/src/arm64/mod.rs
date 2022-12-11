@@ -10,7 +10,6 @@ macro_rules! try_const {
     };
 }
 
-pub mod block;
 pub mod decoder;
 
 pub(crate) mod detail;

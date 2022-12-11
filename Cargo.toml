@@ -1,2 +1,5 @@
 [workspace]
 members = ["maid-codec", "maid-jit", "maid-utils", "maid"]
+
+[workspace.dependencies]
+static_assertions = "1.1.0"
