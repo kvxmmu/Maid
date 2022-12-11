@@ -21,6 +21,14 @@ pub struct ArithmeticOp {
     pub set_flags: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TaggedArithmeticOp {
+    pub rd: u8,
+    pub rn: u8,
+    pub offset: u64,
+    pub uimm4: u64,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     Udf,
@@ -30,6 +38,9 @@ pub enum Instruction {
 
     AddImm(ArithmeticOp),
     SubImm(ArithmeticOp),
+
+    TaggedAddImm(TaggedArithmeticOp),
+    TaggedSubImm(TaggedArithmeticOp),
 
     Unallocated { block: Block },
     UnallocatedSpan { span: BufSpan },
