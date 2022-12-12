@@ -19,7 +19,7 @@ pub struct BufferedDecoder<'a> {
 }
 
 impl<'a> BufferedDecoder<'a> {
-    pub fn try_peek(&self) -> DecodeResult<Instruction> {
+    pub const fn try_peek(&self) -> DecodeResult<Instruction> {
         let block = Block::new(match self.try_peek_u32() {
             Ok(b) => b,
             Err(DecodeError::InvalidLengthOfData { length }) => {
@@ -46,7 +46,7 @@ impl<'a> BufferedDecoder<'a> {
             0b0111 | 0b1111 => data_processing_fp_simd::decode(block),
 
             0b0001 | 0b011 => Instruction::Unallocated { block },
-            v => todo!("{}", v),
+            _ => todo!(),
         })
     }
 }
