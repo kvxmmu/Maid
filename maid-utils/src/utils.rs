@@ -46,8 +46,10 @@ pub const fn highest_set_bit(v: u64) -> u64 {
     64 - v.leading_zeros() as u64 - 1
 }
 
-pub const fn replicate1_32(bit: u64) -> u64 {
-    (!0) * bit
+pub const fn replicate_pow2(bits: u64, exp: u64, to_exp: u64) -> u64 {
+    assert!(to_exp.is_power_of_two());
+
+    replicate_pow2_64(bits, exp) >> (64 - to_exp)
 }
 
 pub const fn replicate_pow2_64(bits: u64, exp: u64) -> u64 {
@@ -64,7 +66,8 @@ pub const fn replicate_pow2_64(bits: u64, exp: u64) -> u64 {
     // sum(t) = (b(t) * 2^exp - 1) / (2^exp - 1)
     // result = bits * sum(t)
 
-    let q = 1 << exp;
+    let l = exp - 1;
+    let q: u64 = ((1 << l) - 1) | (1 << l);
 
     // variables are trivially reducible, just try
     // it in your workbook
@@ -73,9 +76,7 @@ pub const fn replicate_pow2_64(bits: u64, exp: u64) -> u64 {
     bits * sumt
 }
 
-// TODO: write more generalized version with power of two
-// since 32 is power of two it is only divisible by 2^n
-// where `n` is natural or zero
+/// Cheaper version of
 pub const fn replicate2_32(bits: u64) -> u64 {
     // Actually we have geometric progression, since we need to
     // replicate 2bits to 32bit, this will look like:
@@ -94,16 +95,17 @@ pub const fn replicate2_32(bits: u64) -> u64 {
 }
 
 // -> (bits(M) bits(N))
-pub const fn decode_bit_masks<const M: u64>(
+pub const fn decode_bit_masks(
     imm_n: u64,
     imms: u64,
     immr: u64,
     immediate: bool,
+    m: u64,
 ) -> (u64, u64) {
-    let len = highest_set_bit((imm_n << 6) | !imms);
+    let len = highest_set_bit((imm_n << 6) | ((!imms) & 0b111111));
 
     assert!(len >= 1);
-    assert!(M >= (1 << len));
+    assert!(m >= (1 << len));
 
     let levels: u64 = (1 << len) - 1; // bits(6)
 
@@ -120,8 +122,8 @@ pub const fn decode_bit_masks<const M: u64>(
     let (welem, telem) = (ones(s + 1), ones(d + 1));
     // bits(esize)
 
-    let wmask = welem.rotate_right(r as u32);
-    let tmask = telem;
+    let wmask = replicate_pow2(welem.rotate_right(r as u32), esize, m);
+    let tmask = replicate_pow2(telem, esize, m);
 
     (wmask, tmask)
 }

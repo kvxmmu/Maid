@@ -1,9 +1,17 @@
 use crate::{
     block::Block,
     replicate2_32,
+    replicate_pow2,
     replicate_pow2_64,
     utils::sign_extend64,
 };
+
+#[test]
+fn test_replicate_pow2() {
+    assert_eq!(replicate_pow2(0b11, 2, 8), 0xFF);
+    assert_eq!(replicate_pow2(0b1011, 4, 8), 0b10111011);
+    assert_eq!(replicate_pow2(0xAF, 8, 8), 0xAF);
+}
 
 #[test]
 fn test_replicate_pow2_64() {
@@ -11,6 +19,8 @@ fn test_replicate_pow2_64() {
     assert_eq!(replicate_pow2_64(0b10, 2), 0xAA_AA_AA_AA_AA_AA_AA_AA);
     assert_eq!(replicate_pow2_64(0b01, 2), 0x55_55_55_55_55_55_55_55);
     assert_eq!(replicate_pow2_64(0b00, 2), 0x0);
+
+    assert_eq!(replicate_pow2_64(0b1111, 4), 0xFF_FF_FF_FF_FF_FF_FF_FF);
 }
 
 #[test]
