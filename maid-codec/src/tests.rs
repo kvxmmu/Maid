@@ -1,9 +1,10 @@
 use crate::{
     arm64::decoder::BufferedDecoder,
     instruction::{
-        ArithmeticOp,
+        ArithmeticImmOp,
         Instruction,
         LogicalImmOp,
+        MoveWideImm,
         RegisterType,
     },
 };
@@ -16,7 +17,7 @@ macro_rules! test_insn {
                 let insn: u32 = $insn;
                 let data: [u8; 4] = [
                     (insn & 0xff) as _,
-                    ((insn >> 8) & 0xff) as _,
+                    ((insn >> 8 ) & 0xff) as _,
                     ((insn >> 16) & 0xff) as _,
                     ((insn >> 24) & 0xff) as _,
                 ];
@@ -30,6 +31,33 @@ macro_rules! test_insn {
 }
 
 test_insn! {
+    test_movk_immediate(0x410180F2) |insn| {
+        assert_eq!(insn, Instruction::MovKImmediate(MoveWideImm {
+            register_type: RegisterType::X,
+            imm16: 10,
+            pos: 0,
+            rd: 1
+        }));
+    };
+
+    test_movn_immediate(0x41018092) |insn| {
+        assert_eq!(insn, Instruction::MovNImmediate(MoveWideImm {
+            register_type: RegisterType::X,
+            imm16: 10,
+            pos: 0,
+            rd: 1
+        }));
+    };
+
+    test_movz_immediate(0x410180D2) |insn| {
+        assert_eq!(insn, Instruction::MovZImmediate(MoveWideImm {
+            rd: 1,
+            imm16: 10,
+            pos: 0,
+            register_type: RegisterType::X
+        }));
+    };
+
     test_adr_immediate(0x2A030010) |insn| {
         assert_eq!(insn, Instruction::AdrImm { imm: 100, rd: 10 });
     };
@@ -39,7 +67,7 @@ test_insn! {
     };
 
     test_add_immediate(0x4BB10491) |insn| {
-        assert_eq!(insn, Instruction::AddImm(ArithmeticOp {
+        assert_eq!(insn, Instruction::AddImm(ArithmeticImmOp {
             rd: 11,
             rn: 10,
             imm: 300,
@@ -49,7 +77,7 @@ test_insn! {
     };
 
     test_add_immediate_from12(0x8BB10491) |insn| {
-        assert_eq!(insn, Instruction::AddImm(ArithmeticOp {
+        assert_eq!(insn, Instruction::AddImm(ArithmeticImmOp {
             rd: 11,
             rn: 12,
             imm: 300,
@@ -59,7 +87,7 @@ test_insn! {
     };
 
     test_add_immediate_from10_to4(0x44B10491) |insn| {
-        assert_eq!(insn, Instruction::AddImm(ArithmeticOp {
+        assert_eq!(insn, Instruction::AddImm(ArithmeticImmOp {
             rd: 4,
             rn: 10,
             imm: 300,
@@ -132,7 +160,7 @@ test_insn! {
     };
 
     test_sub_immediate(0x44B104D1) |insn| {
-        assert_eq!(insn, Instruction::SubImm(ArithmeticOp {
+        assert_eq!(insn, Instruction::SubImm(ArithmeticImmOp {
             rd: 4,
             rn: 10,
             imm: 300,
@@ -142,7 +170,7 @@ test_insn! {
     };
 
     test_adds_immediate(0x44B104B1) |insn| {
-        assert_eq!(insn, Instruction::AddImm(ArithmeticOp {
+        assert_eq!(insn, Instruction::AddImm(ArithmeticImmOp {
             rd: 4,
             rn: 10,
             imm: 300,

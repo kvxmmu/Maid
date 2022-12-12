@@ -13,7 +13,7 @@ pub enum RegisterType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ArithmeticOp {
+pub struct ArithmeticImmOp {
     pub rd: u8,
     pub rn: u8,
     pub imm: u64,
@@ -38,6 +38,14 @@ pub struct LogicalImmOp {
     pub rd: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MoveWideImm {
+    pub register_type: RegisterType,
+    pub imm16: u64,
+    pub pos: u64,
+    pub rd: u8,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     Udf,
@@ -45,8 +53,8 @@ pub enum Instruction {
     AdrpImm { imm: u64, rd: u8 },
     AdrImm { imm: u64, rd: u8 },
 
-    AddImm(ArithmeticOp),
-    SubImm(ArithmeticOp),
+    AddImm(ArithmeticImmOp),
+    SubImm(ArithmeticImmOp),
 
     TaggedAddImm(TaggedArithmeticOp),
     TaggedSubImm(TaggedArithmeticOp),
@@ -55,6 +63,10 @@ pub enum Instruction {
     OrrImm(LogicalImmOp),
     EorImm(LogicalImmOp),
     AndsImm(LogicalImmOp),
+
+    MovNImmediate(MoveWideImm),
+    MovZImmediate(MoveWideImm),
+    MovKImmediate(MoveWideImm),
 
     Unallocated { block: Block },
     UnallocatedSpan { span: BufSpan },

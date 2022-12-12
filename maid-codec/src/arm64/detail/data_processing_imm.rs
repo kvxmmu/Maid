@@ -1,8 +1,9 @@
 use {
     crate::instruction::{
-        ArithmeticOp,
+        ArithmeticImmOp,
         Instruction,
         LogicalImmOp,
+        MoveWideImm,
         RegisterType,
         TaggedArithmeticOp,
     },
@@ -50,7 +51,7 @@ pub const fn decode(block: Block) -> Instruction {
             let sh = block.take_single_bool(22);
 
             let imm = if sh { imm12 << 12 } else { imm12 } as u64;
-            let op = ArithmeticOp {
+            let op = ArithmeticImmOp {
                 rd,
                 rn,
                 imm,
@@ -147,7 +148,42 @@ pub const fn decode(block: Block) -> Instruction {
 
         // Move wide (immediate)
         0b101 => {
-            todo!()
+            let opc = block.take_from_to_u32(29, 30);
+            let hw = block.take_from_to_u32(21, 22);
+
+            if (opc == 0b01) || matches!(hw, 0b10 | 0b11) {
+                return Instruction::Unallocated { block };
+            }
+
+            let imm16 = block.take_from_to_u32(5, 20);
+            let rd = block.take_from_to_u32(0, 4) as u8;
+            let register_type = RegisterType::from_sf(sf);
+
+            if matches!(register_type, RegisterType::W) && ((hw >> 1) == 1)
+            {
+                panic!("undefined");
+            }
+
+            let pos = hw << 4;
+            let mov = MoveWideImm {
+                rd,
+                register_type,
+                imm16: imm16 as u64,
+                pos: pos as _,
+            };
+
+            match opc {
+                // movn
+                0b00 => Instruction::MovNImmediate(mov),
+
+                // movz
+                0b10 => Instruction::MovZImmediate(mov),
+
+                // movk
+                0b11 => Instruction::MovKImmediate(mov),
+
+                _ => unreachable!(),
+            }
         }
 
         // Bitfield
