@@ -29,6 +29,15 @@ pub struct TaggedArithmeticOp {
     pub uimm4: u64,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LogicalImmOp {
+    pub imm: u64,
+    pub register_type: RegisterType,
+
+    pub rn: u8,
+    pub rd: u8,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     Udf,
@@ -42,11 +51,20 @@ pub enum Instruction {
     TaggedAddImm(TaggedArithmeticOp),
     TaggedSubImm(TaggedArithmeticOp),
 
+    AndImm(LogicalImmOp),
+    OrrImm(LogicalImmOp),
+    EorImm(LogicalImmOp),
+    AndsImm(LogicalImmOp),
+
     Unallocated { block: Block },
     UnallocatedSpan { span: BufSpan },
 }
 
 impl RegisterType {
+    pub const fn as_data_size(self) -> u64 {
+        32 * ((self as u64) + 1)
+    }
+
     pub const fn from_sf(sf: bool) -> Self {
         union TransmuteEnum {
             sf: bool,

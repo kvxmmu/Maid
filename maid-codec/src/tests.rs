@@ -3,6 +3,7 @@ use crate::{
     instruction::{
         ArithmeticOp,
         Instruction,
+        LogicalImmOp,
         RegisterType,
     },
 };
@@ -64,6 +65,69 @@ test_insn! {
             imm: 300,
             register: RegisterType::X,
             set_flags: false
+        }));
+    };
+
+    test_ands_immediate(0x400074F2) |insn| {
+        assert_eq!(insn, Instruction::AndsImm(LogicalImmOp {
+            imm: 4096,
+            register_type: RegisterType::X,
+            rn: 2,
+            rd: 0
+        }));
+    };
+
+    test_eor_immediate(0x400074D2) |insn| {
+        assert_eq!(insn, Instruction::EorImm(LogicalImmOp {
+            imm: 4096,
+            register_type: RegisterType::X,
+            rn: 2,
+            rd: 0
+        }));
+    };
+
+    test_orr_immediate_big(0x400074B2) |insn| {
+        assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
+            imm: 4096,
+            register_type: RegisterType::X,
+            rn: 2,
+            rd: 0
+        }));
+    };
+
+    test_orr_immediate(0x400440B2) |insn| {
+        assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
+            imm: 3,
+            register_type: RegisterType::X,
+            rn: 2,
+            rd: 0
+        }));
+    };
+
+    test_orr_immediate_32bit(0x40040032) |insn| {
+        assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
+            imm: 3,
+            register_type: RegisterType::W,
+            rn: 2,
+            rd: 0
+        }));
+    };
+
+    test_and_immediate_32bit(0x00040012) |insn| {
+        assert_eq!(insn, Instruction::AndImm(LogicalImmOp {
+            imm: 3,
+            register_type: RegisterType::W,
+            rn: 0,
+            rd: 0
+        }));
+    };
+
+    test_and_immediate(0x00044092) |insn| {
+        assert_eq!(insn, Instruction::AndImm(LogicalImmOp {
+            rd: 0,
+            rn: 0,
+            register_type: RegisterType::X,
+            imm: 3,
         }));
     };
 

@@ -2,11 +2,13 @@ use {
     crate::instruction::{
         ArithmeticOp,
         Instruction,
+        LogicalImmOp,
         RegisterType,
         TaggedArithmeticOp,
     },
     maid_utils::{
         block::*,
+        decode_bit_masks,
         lsl64,
         sign_extend64,
         LOG2_TAG_GRANULE,
@@ -105,29 +107,39 @@ pub const fn decode(block: Block) -> Instruction {
             }
             let opc = block.take_from_to_u32(29, 30);
 
-            let immr = block.take_from_to_u32(16, 21);
-            let imms = block.take_from_to_u32(10, 15);
+            let rn = block.take_from_to_u32(5, 9) as u8;
+            let rd = block.take_from_to_u32(0, 4) as u8;
+
+            let immr = block.take_from_to_u32(16, 21) as u64;
+            let imms = block.take_from_to_u32(10, 15) as u64;
+
+            let register_type = RegisterType::from_sf(sf);
+            let (imm, _) = decode_bit_masks(
+                n as u64,
+                imms,
+                immr,
+                true,
+                register_type.as_data_size(),
+            );
+            let logical = LogicalImmOp {
+                imm,
+                register_type,
+                rn,
+                rd,
+            };
 
             match opc {
                 // And
-                0b00 => {
-                    todo!()
-                }
+                0b00 => Instruction::AndImm(logical),
 
                 // Orr
-                0b01 => {
-                    todo!()
-                }
+                0b01 => Instruction::OrrImm(logical),
 
                 // Eor
-                0b10 => {
-                    todo!()
-                }
+                0b10 => Instruction::EorImm(logical),
 
                 // Ands
-                0b11 => {
-                    todo!()
-                }
+                0b11 => Instruction::AndsImm(logical),
 
                 _ => unreachable!(),
             }
