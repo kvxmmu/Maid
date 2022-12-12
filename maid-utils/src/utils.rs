@@ -50,14 +50,37 @@ pub const fn replicate1_32(bit: u64) -> u64 {
     (!0) * bit
 }
 
+pub const fn replicate_pow2_64(bits: u64, exp: u64) -> u64 {
+    // result = bits + bits * 2^exp + ... + bits * 2^(64 / exp)
+    // result = bits * (1 + 2^exp + ... + 2^(64 / exp))
+    // t = 64 / exp
+    // result = bits * (1 + 2^exp + ... + 2^t)
+    //
+    // b1 = 1
+    // q = 2^exp
+    // b(t) = b1 * q^(t - 1) = (2^exp)^(t - 1) = 2^(exp * (t -
+    // 1)) b(t) = 2 ^ (exp * (t - 1))
+    //
+    // sum(t) = (b(t) * 2^exp - 1) / (2^exp - 1)
+    // result = bits * sum(t)
+
+    let q = 1 << exp;
+
+    // variables are trivially reducible, just try
+    // it in your workbook
+    let sumt = 0xFF_FF_FF_FF_FF_FF_FF_FF / (q - 1);
+
+    bits * sumt
+}
+
 // TODO: write more generalized version with power of two
 // since 32 is power of two it is only divisible by 2^n
 // where `n` is natural or zero
 pub const fn replicate2_32(bits: u64) -> u64 {
     // Actually we have geometric progression, since we need to
     // replicate 2bits to 32bit, this will look like:
-    // bits + bits * 2^2 + bits * 2^4 + ... + bits * 2^16 =
-    // result so, we can take out the b:
+    // bits + bits * 2^exp + bits * 2^(2 * exp) + ... + bits *
+    // 2^16 = result so, we can take out the b:
     // bits * (2^0 + 2^2 + 2^4 + ... + 2^16) = result
     //
     // b1 = 1
@@ -71,27 +94,42 @@ pub const fn replicate2_32(bits: u64) -> u64 {
 }
 
 // -> (bits(M) bits(N))
-pub const fn decode_bit_masks(
+pub const fn decode_bit_masks<const M: u64>(
     imm_n: u64,
     imms: u64,
     immr: u64,
-    m_bits: u64,
     immediate: bool,
 ) -> (u64, u64) {
-    let tmask: u64; // bits(64)
-    let wmask: u64; // bits(64)
-
-    let tmask_and: u64; // bits(6)
-    let wmask_and: u64; // bits(6)
-
-    let tmask_or: u64; // bits(6)
-    let wmask_or: u64; // bits(6)
-
-    let levels: u64; // bits(6)
-
     let len = highest_set_bit((imm_n << 6) | !imms);
 
-    todo!()
+    assert!(len >= 1);
+    assert!(M >= (1 << len));
+
+    let levels: u64 = (1 << len) - 1; // bits(6)
+
+    if immediate && ((imms & levels) == levels) {
+        panic!("undefined");
+    }
+
+    let (s, r) = (imms & levels, immr & levels);
+    let diff = s.wrapping_sub(r);
+
+    let esize = 1 << len;
+    let d = diff & (len - 1);
+
+    let (welem, telem) = (ones(s + 1), ones(d + 1));
+    // bits(esize)
+
+    let wmask = welem.rotate_right(r as u32);
+    let tmask = telem;
+
+    (wmask, tmask)
+}
+
+pub const fn ones(n: u64) -> u64 {
+    let mask = 1 << (n - 1);
+    let lhs = mask - 1;
+    lhs | mask
 }
 
 pub const fn lsl64(x: u64, bits: u64, shift: u64) -> u64 {
