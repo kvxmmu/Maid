@@ -20,8 +20,6 @@ fi
 file="$1"
 output="${file%.c}.bintest"
 
-echo "$output - $file"
-
 invoke $ARM64_CC -ffreestanding -nostdlib -Wl,-Ttext=0x0 $file -o $output
 invoke $OBJCOPY -O binary $output
 
