@@ -14,7 +14,8 @@ macro_rules! test_insn {
         $(
             #[test]
             fn $name() {
-                let insn: u32 = $insn;
+                let mut insn: u32 = $insn;
+                insn = insn.to_be();
                 let data: [u8; 4] = [
                     (insn & 0xff) as _,
                     ((insn >> 8 ) & 0xff) as _,

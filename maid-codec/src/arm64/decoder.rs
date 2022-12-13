@@ -46,7 +46,7 @@ impl<'a> BufferedDecoder<'a> {
             0b0111 | 0b1111 => data_processing_fp_simd::decode(block),
 
             0b0001 | 0b011 => Instruction::Unallocated { block },
-            _ => todo!(),
+            _ => Instruction::Unallocated { block },
         })
     }
 }
@@ -85,10 +85,10 @@ impl BufferedDecoder<'_> {
                 cold_err(DecodeError::InvalidLengthOfData { length })
             }
             4.. => {
-                let res = ((self.buffer[0] as u32) << 24)
-                    | ((self.buffer[1] as u32) << 16)
-                    | ((self.buffer[2] as u32) << 8)
-                    | (self.buffer[3] as u32);
+                let res = ((self.buffer[3] as u32) << 24)
+                    | ((self.buffer[2] as u32) << 16)
+                    | ((self.buffer[1] as u32) << 8)
+                    | (self.buffer[0] as u32);
                 Ok(res)
             }
 
