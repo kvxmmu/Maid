@@ -5,5 +5,18 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "maid"
+path = "lib/lib.rs"
+
+[[bin]]
+name = "maid"
+path = "src/main.rs"
+
 [dependencies]
-maid-codec = { path = "../maid-codec" }
+maid-vm = { path = "../maid-vm" }
+
+clap = { version = "4.0.29", features = ["derive"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
+anyhow = "1.0.66"

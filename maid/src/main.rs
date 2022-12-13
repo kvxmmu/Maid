@@ -1,10 +1,19 @@
-use maid_codec::arm64::decoder::*;
+use {
+    anyhow::Result,
+    maid::{
+        actions::enumerate::enumerate_asm,
+        args::*,
+    },
+};
 
-fn main() {
-    let buffer = include_bytes!("../../data/add.bintest");
-    let mut decoder = BufferedDecoder::new(buffer);
+fn main() -> Result<()> {
+    let args = CliArgs::from_args();
 
-    while let Ok(insn) = decoder.decode_next() {
-        dbg!(insn);
+    match args.sub {
+        CliSub::Enumerate { file } => {
+            enumerate_asm(file)?;
+        }
     }
+
+    Ok(())
 }
