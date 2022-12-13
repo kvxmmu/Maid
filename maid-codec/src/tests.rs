@@ -34,7 +34,7 @@ macro_rules! test_insn {
 test_insn! {
     test_movk_immediate(0x410180F2) |insn| {
         assert_eq!(insn, Instruction::MovKImmediate(MoveWideImm {
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             imm16: 10,
             pos: 0,
             rd: 1
@@ -43,7 +43,7 @@ test_insn! {
 
     test_movn_immediate(0x41018092) |insn| {
         assert_eq!(insn, Instruction::MovNImmediate(MoveWideImm {
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             imm16: 10,
             pos: 0,
             rd: 1
@@ -55,7 +55,7 @@ test_insn! {
             rd: 1,
             imm16: 10,
             pos: 0,
-            register_type: RegisterType::X
+            register: RegisterType::X
         }));
     };
 

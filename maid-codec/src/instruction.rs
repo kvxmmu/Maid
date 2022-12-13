@@ -40,7 +40,7 @@ pub struct LogicalImmOp {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MoveWideImm {
-    pub register_type: RegisterType,
+    pub register: RegisterType,
     pub imm16: u64,
     pub pos: u64,
     pub rd: u8,

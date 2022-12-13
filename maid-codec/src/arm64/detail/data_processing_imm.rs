@@ -167,7 +167,7 @@ pub const fn decode(block: Block) -> Instruction {
             let pos = hw << 4;
             let mov = MoveWideImm {
                 rd,
-                register_type,
+                register: register_type,
                 imm16: imm16 as u64,
                 pos: pos as _,
             };
