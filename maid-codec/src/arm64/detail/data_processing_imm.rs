@@ -50,7 +50,7 @@ pub const fn decode(block: Block) -> Instruction {
             let rd = block.take_from_to_u32(0, 4) as u8;
             let sh = block.take_single_bool(22);
 
-            let imm = if sh { imm12 << 12 } else { imm12 } as u64;
+            let imm = if sh { imm12 << 12 } else { imm12 };
             let op = ArithmeticImmOp {
                 rd,
                 rn,
@@ -80,7 +80,7 @@ pub const fn decode(block: Block) -> Instruction {
             }
 
             let uimm6 = block.take_from_to_u32(16, 21) as u64;
-            let uimm4 = block.take_from_to_u32(10, 13) as u64;
+            let uimm4 = block.take_from_to_u32(10, 13) as u8;
 
             let rd = block.take_from_to_u32(0, 4) as u8;
             let rn = block.take_from_to_u32(5, 9) as u8;
@@ -168,7 +168,7 @@ pub const fn decode(block: Block) -> Instruction {
             let mov = MoveWideImm {
                 rd,
                 register: register_type,
-                imm16: imm16 as u64,
+                imm16: imm16 as u16,
                 pos: pos as _,
             };
 

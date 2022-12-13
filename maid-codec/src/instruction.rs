@@ -16,7 +16,7 @@ pub enum RegisterType {
 pub struct ArithmeticImmOp {
     pub rd: u8,
     pub rn: u8,
-    pub imm: u64,
+    pub imm: u32,
     pub register: RegisterType,
     pub set_flags: bool,
 }
@@ -25,8 +25,9 @@ pub struct ArithmeticImmOp {
 pub struct TaggedArithmeticOp {
     pub rd: u8,
     pub rn: u8,
+    pub uimm4: u8,
+
     pub offset: u64,
-    pub uimm4: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,7 +42,7 @@ pub struct LogicalImmOp {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MoveWideImm {
     pub register: RegisterType,
-    pub imm16: u64,
+    pub imm16: u16,
     pub pos: u64,
     pub rd: u8,
 }
