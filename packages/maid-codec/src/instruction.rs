@@ -81,6 +81,13 @@ pub enum Instruction {
     Sys(SysInsn),
     Sysl(SysInsn),
 
+    Br {
+        rn: u8,
+    },
+    Blr {
+        rn: u8,
+    },
+
     Unallocated {
         block: Block,
     },

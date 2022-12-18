@@ -23,6 +23,8 @@ pub const fn decode(block: Block) -> Instruction {
     let op1 = block.take_from_to_u32(12, 25);
     let op2 = block.take_from_to_u32(0, 4);
 
+    let unallocated = Instruction::Unallocated { block };
+
     match op0 {
         // Bunch of instructions
         0b110 => {
@@ -35,14 +37,14 @@ pub const fn decode(block: Block) -> Instruction {
                 let imm16 = block.take_from_to_u32(5, 20) as u16;
 
                 if op2 != 0 {
-                    return Instruction::Unallocated { block };
+                    return unallocated;
                 }
 
                 match opc {
                     0b000 => {
                         let exc = ExceptionGenImm { imm16 };
                         return match ll {
-                            0b00 => Instruction::Unallocated { block },
+                            0b00 => unallocated,
 
                             0b01 => Instruction::Svc(exc),
                             0b10 => Instruction::Hvc(exc),
@@ -54,9 +56,7 @@ pub const fn decode(block: Block) -> Instruction {
 
                     0b001 => {
                         return match ll {
-                            0b10 | 0b01 | 0b11 => {
-                                Instruction::Unallocated { block }
-                            }
+                            0b10 | 0b01 | 0b11 => unallocated,
 
                             0b00 => Instruction::Brk { imm16 },
 
@@ -66,9 +66,7 @@ pub const fn decode(block: Block) -> Instruction {
 
                     0b010 => {
                         return match ll {
-                            0b10 | 0b01 | 0b11 => {
-                                Instruction::Unallocated { block }
-                            }
+                            0b10 | 0b01 | 0b11 => unallocated,
 
                             0b00 => Instruction::Hlt { imm16 },
 
@@ -77,12 +75,12 @@ pub const fn decode(block: Block) -> Instruction {
                     }
 
                     0b011 | 0b100 | 0b110 | 0b111 => {
-                        return Instruction::Unallocated { block }
+                        return unallocated;
                     }
 
                     0b101 => {
                         let Some(index) = DcpsIndex::try_from_u8(ll as u8) else {
-                            return Instruction::Unallocated { block }
+                            return unallocated;
                         };
 
                         return Instruction::Dcps {
@@ -182,14 +180,56 @@ pub const fn decode(block: Block) -> Instruction {
                 let rn = block.take_from_to_u32(5, 9) as u8;
 
                 if op2 != 0b11111 {
-                    return Instruction::Unallocated { block };
+                    return unallocated;
                 }
 
                 return match opc {
-                    0b0010 => match op3 {
-                        0b000000 if op4 != 0 => {
-                            Instruction::Unallocated { block }
+                    0b1001 => match op3 {
+                        // BLRAA, BLRAAZ, BLRAB, BLRABZ — key A, register
+                        // modifier
+                        0b000010 => todo!(),
+
+                        // BLRAA, BLRAAZ, BLRAB, BLRABZ — key B, register
+                        // modifier
+                        0b000011 => todo!(),
+
+                        _ => unallocated,
+                    },
+                    0b1000 => match op3 {
+                        // BRAA, BRAAZ, BRAB, BRABZ — key A, register
+                        // modifier
+                        0b000010 => todo!(),
+
+                        // BRAA, BRAAZ, BRAB, BRABZ — key B, register
+                        // modifier
+                        0b000011 => todo!(),
+
+                        _ => unallocated,
+                    },
+
+                    0b0110 | 0b0111 => unallocated,
+                    0b101 => match op3 {
+                        // DRPS
+                        0b000000 if rn == 0b11111 && op4 == 0 => todo!(),
+
+                        _ => unallocated,
+                    },
+
+                    0b0100 => match op3 {
+                        // eret
+                        0b000000 if rn == 0b11111 && op4 == 0 => todo!(),
+
+                        // ERETAA, ERETAB — ERETAB
+                        0b000011 if rn == 0b11111 && op4 == 0b11111 => {
+                            todo!()
                         }
+
+                        _ => unallocated,
+                    },
+
+                    0b0011 => unallocated,
+                    0b0010 => match op3 {
+                        0b000000 if op4 != 0 => unallocated,
                         0b000000 => Instruction::Ret { rn },
 
                         // RETAA, RETAB — RETAA
@@ -197,55 +237,47 @@ pub const fn decode(block: Block) -> Instruction {
                             todo!()
                         }
 
-                        _ => todo!(),
+                        // RETAA, RETAB — RETAB
+                        0b000011 if rn == 0b11111 && op4 == 0b11111 => {
+                            todo!()
+                        }
+
+                        _ => unallocated,
                     },
 
                     0b0001 => match op3 {
-                        0b000000 if op4 != 0 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000000 if op4 != 0 => unallocated,
                         // BLR
-                        0b000000 => todo!(),
+                        0b000000 => Instruction::Blr { rn },
 
-                        0b000001 if op4 != 0b11111 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000001 if op4 != 0b11111 => unallocated,
                         // BLRAA, BLRAAZ, BLRAB, BLRABZ — key A, zero
                         // modifier
                         0b000001 => todo!(),
 
-                        0b000011 if op4 != 0b11111 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000011 if op4 != 0b11111 => unallocated,
                         // BLRAA, BLRAAZ, BLRAB, BLRABZ — key B, zero
                         // modifier
                         0b000011 => todo!(),
 
-                        _ => Instruction::Unallocated { block },
+                        _ => unallocated,
                     },
 
                     0b0000 => match op3 {
-                        0b000000 if op4 != 0 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000000 if op4 != 0 => unallocated,
 
-                        // BR
-                        0b000000 => todo!(),
-                        0b000001 => Instruction::Unallocated { block },
+                        0b000000 => Instruction::Br { rn },
+                        0b000001 => unallocated,
 
-                        0b000010 if op4 != 0b11111 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000010 if op4 != 0b11111 => unallocated,
                         // BRAA, BRAAZ, BRAB, BRABZ — key A, zero modifier
                         0b000010 => todo!(),
 
-                        0b000011 if op4 != 0b11111 => {
-                            Instruction::Unallocated { block }
-                        }
+                        0b000011 if op4 != 0b11111 => unallocated,
                         // BRAA, BRAAZ, BRAB, BRABZ — key B, zero modifier
                         0b000011 => todo!(),
 
-                        _ => Instruction::Unallocated { block },
+                        _ => unallocated,
                     },
 
                     _ => todo!(),
@@ -263,7 +295,7 @@ pub const fn decode(block: Block) -> Instruction {
 
             let (false, o1) =
                 (block.take_single_bool(4), block.take_single_bool(24)) else {
-                return Instruction::Unallocated { block };
+                return unallocated;
             };
 
             let imm19 = block.take_from_to_u32(5, 23);
