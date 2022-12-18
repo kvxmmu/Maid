@@ -18,40 +18,46 @@ pub struct BufferedDecoder<'a> {
 }
 
 impl<'a> BufferedDecoder<'a> {
-    pub const fn try_peek(&self) -> DecodeResult<Instruction> {
+    pub const fn try_peek(&self) -> DecodeResult<(Block, Instruction)> {
         let block = Block::new(match self.try_peek_u32() {
             Ok(b) => b,
             Err(DecodeError::InvalidLengthOfData { length }) => {
-                return Ok(Instruction::UnallocatedSpan {
-                    span: self.advanced..(self.advanced + length),
-                });
+                return Ok((
+                    Block::new(0),
+                    Instruction::UnallocatedSpan {
+                        span: self.advanced..(self.advanced + length),
+                    },
+                ));
             }
 
             Err(e) => return cold_err(e),
         });
 
-        Ok(match block.take_from_to_u32(25, 28) {
-            0b0000 => reserved::decode(block),
-            0b0010 => sve_encodings::decode(block),
+        Ok((
+            block,
+            match block.take_from_to_u32(25, 28) {
+                0b0000 => reserved::decode(block),
+                0b0010 => sve_encodings::decode(block),
 
-            0b1000 | 0b1001 => data_processing_imm::decode(block),
-            0b1010 | 0b1011 => branches_exc_sys::decode(block),
+                0b1000 | 0b1001 => data_processing_imm::decode(block),
+                0b1010 | 0b1011 => branches_exc_sys::decode(block),
 
-            0b0100 | 0b0110 | 0b1100 | 0b1110 => {
-                loads_and_stores::decode(block)
-            }
+                0b0100 | 0b0110 | 0b1100 | 0b1110 => {
+                    loads_and_stores::decode(block)
+                }
 
-            0b0101 | 0b1101 => data_processing_register::decode(block),
-            0b0111 | 0b1111 => data_processing_fp_simd::decode(block),
+                0b0101 | 0b1101 => data_processing_register::decode(block),
+                0b0111 | 0b1111 => data_processing_fp_simd::decode(block),
 
-            0b0001 | 0b011 => Instruction::Unallocated { block },
-            _ => Instruction::Unallocated { block },
-        })
+                0b0001 | 0b011 => Instruction::Unallocated { block },
+                _ => Instruction::Unallocated { block },
+            },
+        ))
     }
 }
 
 impl<'a> BufferedDecoder<'a> {
-    pub fn decode_next(&mut self) -> DecodeResult<Instruction> {
+    pub fn decode_next(&mut self) -> DecodeResult<(Block, Instruction)> {
         let result = self.try_peek();
         self.advance_by(4);
 

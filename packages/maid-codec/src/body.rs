@@ -32,6 +32,16 @@ define_named_conv_enum! {
 
 define_body_structs! {
     #[derive(Copy)]
+    struct SysInsn =
+        rt: u8,
+
+        sys_op1: u8,
+        sys_op2: u8,
+
+        sys_crn: u8,
+        sys_crm: u8
+
+    #[derive(Copy)]
     struct SysRegMove =
         sys_op0: u8,
         sys_op1: u8,

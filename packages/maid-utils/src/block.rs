@@ -1,4 +1,7 @@
-use std::slice;
+use std::{
+    fmt::Display,
+    slice,
+};
 
 use static_assertions::{
     assert_eq_align,
@@ -9,6 +12,12 @@ use static_assertions::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Block {
     inner: u32,
+}
+
+impl Display for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:0<8x}", self.inner))
+    }
 }
 
 impl Block {
