@@ -74,6 +74,10 @@ pub enum Instruction {
     MsrReg(SysRegMove),
     Mrs(SysRegMove),
 
+    Ret {
+        rn: u8,
+    },
+
     Unallocated {
         block: Block,
     },

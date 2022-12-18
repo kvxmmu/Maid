@@ -134,7 +134,7 @@ pub const fn decode(block: Block) -> Instruction {
                 );
 
                 let sysregm = SysRegMove {
-                    sys_op0: o0 + 2,
+                    sys_op0: o0 | 0b10,
                     sys_op1: op1 as u8,
                     sys_op2: op2 as u8,
                     sys_crn: crn,
@@ -151,7 +151,82 @@ pub const fn decode(block: Block) -> Instruction {
 
             if (op1 >> 13) == 1 {
                 // Unconditional branch (register)
-                todo!()
+                let opc = block.take_from_to_u32(21, 24) as u8;
+                let op2 = block.take_from_to_u32(16, 20) as u8;
+                let op3 = block.take_from_to_u32(10, 15) as u8;
+                let op4 = block.take_from_to_u32(0, 4) as u8;
+
+                let rn = block.take_from_to_u32(5, 9) as u8;
+
+                if op2 != 0b11111 {
+                    return Instruction::Unallocated { block };
+                }
+
+                return match opc {
+                    0b0010 => match op3 {
+                        0b000000 if op4 != 0 => {
+                            Instruction::Unallocated { block }
+                        }
+                        0b000000 => Instruction::Ret { rn },
+
+                        // RETAA, RETAB — RETAA
+                        0b000010 if rn == 0b11111 && op4 == 0b11111 => {
+                            todo!()
+                        }
+
+                        _ => todo!(),
+                    },
+
+                    0b0001 => match op3 {
+                        0b000000 if op4 != 0 => {
+                            Instruction::Unallocated { block }
+                        }
+                        // BLR
+                        0b000000 => todo!(),
+
+                        0b000001 if op4 != 0b11111 => {
+                            Instruction::Unallocated { block }
+                        }
+                        // BLRAA, BLRAAZ, BLRAB, BLRABZ — key A, zero
+                        // modifier
+                        0b000001 => todo!(),
+
+                        0b000011 if op4 != 0b11111 => {
+                            Instruction::Unallocated { block }
+                        }
+                        // BLRAA, BLRAAZ, BLRAB, BLRABZ — key B, zero
+                        // modifier
+                        0b000011 => todo!(),
+
+                        _ => Instruction::Unallocated { block },
+                    },
+
+                    0b0000 => match op3 {
+                        0b000000 if op4 != 0 => {
+                            Instruction::Unallocated { block }
+                        }
+
+                        // BR
+                        0b000000 => todo!(),
+                        0b000001 => Instruction::Unallocated { block },
+
+                        0b000010 if op4 != 0b11111 => {
+                            Instruction::Unallocated { block }
+                        }
+                        // BRAA, BRAAZ, BRAB, BRABZ — key A, zero modifier
+                        0b000010 => todo!(),
+
+                        0b000011 if op4 != 0b11111 => {
+                            Instruction::Unallocated { block }
+                        }
+                        // BRAA, BRAAZ, BRAB, BRABZ — key B, zero modifier
+                        0b000011 => todo!(),
+
+                        _ => Instruction::Unallocated { block },
+                    },
+
+                    _ => todo!(),
+                };
             }
 
             Instruction::Udf
