@@ -28,7 +28,7 @@ macro_rules! define_named_conv_enum {
                         $crate::__sa::assert_eq_align!($name, $repr);
                         $crate::__sa::assert_eq_size!($name, $repr);
 
-                        // TODO: sanity check?
+                        // TODO: Pattern irrefutability check?
                         if !matches!(from, $pat) {
                             return None;
                         }
