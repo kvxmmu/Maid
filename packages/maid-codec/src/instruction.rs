@@ -1,7 +1,5 @@
-use {
-    maid_utils::block::*,
-    static_assertions::const_assert,
-};
+use maid_utils::block::*;
+use static_assertions::const_assert;
 
 pub type BufSpan = std::ops::Range<usize>;
 

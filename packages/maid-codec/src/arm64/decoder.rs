@@ -1,15 +1,14 @@
-use {
-    super::{
-        detail::*,
-        error::DecodeError,
-    },
-    crate::instruction::Instruction,
-    maid_utils::{
-        block::*,
-        cold_err,
-        cold_path,
-    },
+use maid_utils::{
+    block::*,
+    cold_err,
+    cold_path,
 };
+
+use super::{
+    detail::*,
+    error::DecodeError,
+};
+use crate::instruction::Instruction;
 
 pub type DecodeResult<T> = Result<T, DecodeError>;
 
@@ -28,7 +27,7 @@ impl<'a> BufferedDecoder<'a> {
                 });
             }
 
-            Err(e) => return Err(e),
+            Err(e) => return cold_err(e),
         });
 
         Ok(match block.take_from_to_u32(25, 28) {
@@ -57,6 +56,10 @@ impl<'a> BufferedDecoder<'a> {
         self.advance_by(4);
 
         result
+    }
+
+    pub fn seek_to(&mut self, to: usize) {
+        self.advanced = to;
     }
 
     pub fn advance_by(&mut self, mut by: usize) {

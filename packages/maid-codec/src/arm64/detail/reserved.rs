@@ -1,7 +1,6 @@
-use {
-    crate::instruction::Instruction,
-    maid_utils::block::Block,
-};
+use maid_utils::block::Block;
+
+use crate::instruction::Instruction;
 
 pub const fn decode(block: Block) -> Instruction {
     let op0 = block.take_from_u32(31, 3);

@@ -1,22 +1,21 @@
-use {
-    crate::instruction::{
-        ArithmeticImmOp,
-        BitfieldImm,
-        ExtractImm,
-        Instruction,
-        LogicalImmOp,
-        MoveWideImm,
-        RegisterType,
-        TaggedArithmeticOp,
-    },
-    maid_utils::{
-        block::*,
-        decode_bit_masks,
-        lsl64,
-        sign_extend64,
-        PossiblyUndefined,
-        LOG2_TAG_GRANULE,
-    },
+use maid_utils::{
+    block::*,
+    decode_bit_masks,
+    lsl64,
+    sign_extend64,
+    PossiblyUndefined,
+    LOG2_TAG_GRANULE,
+};
+
+use crate::instruction::{
+    ArithmeticImmOp,
+    BitfieldImm,
+    ExtractImm,
+    Instruction,
+    LogicalImmOp,
+    MoveWideImm,
+    RegisterType,
+    TaggedArithmeticOp,
 };
 
 pub const fn decode(block: Block) -> Instruction {
@@ -156,11 +155,6 @@ pub const fn decode(block: Block) -> Instruction {
         0b101 => {
             let opc = block.take_from_to_u32(29, 30);
             let hw = block.take_from_to_u32(21, 22);
-
-            if (opc == 0b01) || matches!(hw, 0b10 | 0b11) {
-                return Instruction::Unallocated { block };
-            }
-
             let imm16 = block.take_from_to_u32(5, 20);
             let rd = block.take_from_to_u32(0, 4) as u8;
             let register_type = RegisterType::from_sf(sf);
@@ -188,6 +182,8 @@ pub const fn decode(block: Block) -> Instruction {
                 // movk
                 0b11 => Instruction::MovKImmediate(mov),
 
+                // unallocated
+                0b01 => Instruction::Unallocated { block },
                 _ => unreachable!(),
             }
         }

@@ -1,9 +1,8 @@
-use {
-    static_assertions::{
-        assert_eq_align,
-        assert_eq_size,
-    },
-    std::slice,
+use std::slice;
+
+use static_assertions::{
+    assert_eq_align,
+    assert_eq_size,
 };
 
 #[repr(transparent)]
