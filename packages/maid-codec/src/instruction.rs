@@ -48,12 +48,28 @@ pub enum Instruction {
     BCond(CondBranchImm),
     BCCond(CondBranchImm),
 
+    Brk {
+        imm16: u16,
+    },
+    Hlt {
+        imm16: u16,
+    },
+    Dcps {
+        index: DcpsIndex,
+        imm16: u16,
+        ll: u8,
+    },
+
     TestZeroImmediate {
         offset: u64,
         rt: u8,
         bit_pos: u8,
         not: bool,
     },
+
+    Svc(ExceptionGenImm),
+    Hvc(ExceptionGenImm),
+    Smc(ExceptionGenImm),
 
     Unallocated {
         block: Block,

@@ -1,29 +1,39 @@
-use maid_declmacro::define_body_structs;
+use maid_declmacro::{
+    define_body_structs,
+    define_named_conv_enum,
+};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum RegisterType {
-    W = 0,
-    X = 1,
-}
+define_named_conv_enum! {
+    enum DcpsIndex: u8 {
+        _1 = 0b01,
+        _2 = 0b10,
+        _3 = 0b11,
+    } range(0b01..=0b11)
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum ConditionBits {
-    ZIsOn = 0b000,
-    CIsOn = 0b001,
-    NIsOn = 0b010,
-    VIsOn = 0b011,
+    enum RegisterType: u8 {
+        W = 0,
+        X = 1,
+    } range(0..=1)
 
-    CIsOnAndZIsOff = 0b100,
+    enum ConditionBits: u8 {
+        ZIsOn = 0b000,
+        CIsOn = 0b001,
+        NIsOn = 0b010,
+        VIsOn = 0b011,
 
-    NEqV = 0b101,
-    NEqVAndZIsOff = 0b110,
+        CIsOnAndZIsOff = 0b100,
 
-    True = 0b111,
+        NEqV = 0b101,
+        NEqVAndZIsOff = 0b110,
+
+        True = 0b111,
+    } range(0b000..=0b111)
 }
 
 define_body_structs! {
+    struct ExceptionGenImm =
+        imm16: u16
+
     struct CondBranchImm =
         offset: u64,
         cond: ConditionBits
@@ -80,23 +90,4 @@ define_body_structs! {
         imm16: u16,
         pos: u64,
         rd: u8
-}
-
-impl ConditionBits {
-    pub const fn try_from_u8(u: u8) -> Option<Self> {
-        union U {
-            i: u8,
-            e: ConditionBits,
-        }
-
-        match u {
-            0..=0b111 => {
-                // SAFETY: this is safe since we're checked value range
-                // above
-                Some(unsafe { U { i: u }.e })
-            }
-
-            _ => None,
-        }
-    }
 }

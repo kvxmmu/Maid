@@ -8,6 +8,8 @@ use crate::{
         CompareAndBranchImm,
         CondBranchImm,
         ConditionBits,
+        DcpsIndex,
+        ExceptionGenImm,
         RegisterType,
         UnconditionalBranch,
     },
@@ -24,7 +26,72 @@ pub const fn decode(block: Block) -> Instruction {
         0b110 => {
             if (op1 & 0x3000) == 0 {
                 // exception generation
-                todo!()
+                let opc = block.take_from_to_u32(5, 20);
+                let op2 = block.take_from_to_u32(2, 4);
+                let ll = block.take_from_to_u32(0, 1);
+
+                let imm16 = block.take_from_to_u32(5, 20) as u16;
+
+                if op2 != 0 {
+                    return Instruction::Unallocated { block };
+                }
+
+                match opc {
+                    0b000 => {
+                        let exc = ExceptionGenImm { imm16 };
+                        return match ll {
+                            0b00 => Instruction::Unallocated { block },
+
+                            0b01 => Instruction::Svc(exc),
+                            0b10 => Instruction::Hvc(exc),
+                            0b11 => Instruction::Smc(exc),
+
+                            _ => unreachable!(),
+                        };
+                    }
+
+                    0b001 => {
+                        return match ll {
+                            0b10 | 0b01 | 0b11 => {
+                                Instruction::Unallocated { block }
+                            }
+
+                            0b00 => Instruction::Brk { imm16 },
+
+                            _ => unreachable!(),
+                        }
+                    }
+
+                    0b010 => {
+                        return match ll {
+                            0b10 | 0b01 | 0b11 => {
+                                Instruction::Unallocated { block }
+                            }
+
+                            0b00 => Instruction::Hlt { imm16 },
+
+                            _ => unreachable!(),
+                        }
+                    }
+
+                    0b011 | 0b100 | 0b110 | 0b111 => {
+                        return Instruction::Unallocated { block }
+                    }
+
+                    0b101 => {
+                        let Some(index) = DcpsIndex::try_from_u8(ll as u8) else {
+                            return Instruction::Unallocated { block }
+                        };
+
+                        return Instruction::Dcps {
+                            index,
+                            imm16,
+                            ll: ll as _,
+                        };
+                    }
+
+                    _ => unreachable!(),
+                }
             } else if op1 == 0b01000000110001 {
                 // System instructions with register argument
                 todo!()
