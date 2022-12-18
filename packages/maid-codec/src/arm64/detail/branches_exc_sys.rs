@@ -20,6 +20,50 @@ pub const fn decode(block: Block) -> Instruction {
     let op2 = block.take_from_to_u32(0, 4);
 
     match op0 {
+        // Bunch of instructions
+        0b110 => {
+            if (op1 & 0x3000) == 0 {
+                // exception generation
+                todo!()
+            } else if op1 == 0b01000000110001 {
+                // System instructions with register argument
+                todo!()
+            } else if op1 == 0b01000000110010 && op2 == 0b11111 {
+                // Hints
+                todo!()
+            } else if op1 == 0b01000000110011 {
+                // Barriers
+                todo!()
+            }
+
+            let (pstate_lhs, pstate_rhs) = (op1 >> 7, op1 & 0x0F);
+            if (pstate_lhs == 0b0100000) && (pstate_rhs == 0b0100) {
+                // PSTATE
+                todo!()
+            }
+
+            let (sysinf_lhs, sysinf_rhs) =
+                ((op1 >> 11), (op1 >> 8) & 0b11);
+            if (sysinf_lhs == 0b0100) && (sysinf_rhs == 0b01) {
+                // System instructions
+                todo!()
+            }
+
+            let (sysregmv_lhs, sysregmv_rhs) =
+                ((op1 >> 10), (op1 >> 8) & 0b1);
+            if (sysregmv_lhs == 0b0100) && (sysregmv_rhs == 1) {
+                // System register move
+                todo!()
+            }
+
+            if (op1 >> 13) == 1 {
+                // Unconditional branch (register)
+                todo!()
+            }
+
+            Instruction::Udf
+        }
+
         // Conditional branch (immediate)
         0b010 => {
             if (op1 & (1 << 13)) != 0 {
@@ -46,9 +90,6 @@ pub const fn decode(block: Block) -> Instruction {
                 Instruction::BCond(cond_branch)
             }
         }
-
-        // Bunch of instructions
-        0b110 => todo!(),
 
         // Unconditional branch (immediate)
         0b100 | 0b000 => {
