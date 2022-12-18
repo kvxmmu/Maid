@@ -1,70 +1,9 @@
 use maid_utils::block::*;
 use static_assertions::const_assert;
 
+pub use crate::body::*;
+
 pub type BufSpan = std::ops::Range<usize>;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum RegisterType {
-    W = 0,
-    X = 1,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BitfieldImm {
-    pub imms: u8,
-    pub immr: u8,
-    pub rd: u8,
-    pub rn: u8,
-
-    pub wmask: u64,
-    pub tmask: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ArithmeticImmOp {
-    pub rd: u8,
-    pub rn: u8,
-    pub imm: u32,
-    pub register: RegisterType,
-    pub set_flags: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TaggedArithmeticOp {
-    pub rd: u8,
-    pub rn: u8,
-    pub uimm4: u8,
-
-    pub offset: u64,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ExtractImm {
-    pub rn: u8,
-    pub rd: u8,
-    pub rm: u8,
-    pub lsb: u8,
-
-    pub register: RegisterType,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LogicalImmOp {
-    pub imm: u64,
-    pub register_type: RegisterType,
-
-    pub rn: u8,
-    pub rd: u8,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MoveWideImm {
-    pub register: RegisterType,
-    pub imm16: u16,
-    pub pos: u64,
-    pub rd: u8,
-}
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
@@ -93,6 +32,9 @@ pub enum Instruction {
     UbfmImm(BitfieldImm),
 
     ExtrImm(ExtractImm),
+
+    BImm(UnconditionalBranch),
+    BlImm(UnconditionalBranch),
 
     Unallocated { block: Block },
     UnallocatedSpan { span: BufSpan },

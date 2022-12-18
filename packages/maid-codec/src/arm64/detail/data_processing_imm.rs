@@ -129,7 +129,7 @@ pub const fn decode(block: Block) -> Instruction {
 
             let logical = LogicalImmOp {
                 imm,
-                register_type,
+                register: register_type,
                 rn,
                 rd,
             };

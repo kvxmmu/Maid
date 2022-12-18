@@ -1,5 +1,8 @@
+use maid_declmacro::test_insn;
+
 use crate::{
     arm64::decoder::BufferedDecoder,
+    body::UnconditionalBranch,
     instruction::{
         ArithmeticImmOp,
         BitfieldImm,
@@ -11,29 +14,13 @@ use crate::{
     },
 };
 
-macro_rules! test_insn {
-    ($($name:ident($insn:expr) |$insn_name:ident| $e:expr);* $(;)?) => {
-        $(
-            #[test]
-            fn $name() {
-                let mut insn: u32 = $insn;
-                insn = insn.to_be();
-                let data: [u8; 4] = [
-                    (insn & 0xff) as _,
-                    ((insn >> 8 ) & 0xff) as _,
-                    ((insn >> 16) & 0xff) as _,
-                    ((insn >> 24) & 0xff) as _,
-                ];
-                let mut decoder = BufferedDecoder::new(&data);
-                let $insn_name = decoder.decode_next().unwrap();
-
-                $e
-            }
-        )*
-    };
-}
-
 test_insn! {
+    test_b_imm(0x19000014) |insn| {
+        assert_eq!(insn, Instruction::BImm(UnconditionalBranch {
+            offset: 100
+        }));
+    };
+
     test_sbfm_imm(0x4A784A93) |insn| {
         assert_eq!(insn, Instruction::SbfmImm(BitfieldImm {
             imms: 30,
@@ -133,7 +120,7 @@ test_insn! {
     test_ands_immediate(0x400074F2) |insn| {
         assert_eq!(insn, Instruction::AndsImm(LogicalImmOp {
             imm: 4096,
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             rn: 2,
             rd: 0
         }));
@@ -142,7 +129,7 @@ test_insn! {
     test_eor_immediate(0x400074D2) |insn| {
         assert_eq!(insn, Instruction::EorImm(LogicalImmOp {
             imm: 4096,
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             rn: 2,
             rd: 0
         }));
@@ -151,7 +138,7 @@ test_insn! {
     test_orr_immediate_big(0x400074B2) |insn| {
         assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
             imm: 4096,
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             rn: 2,
             rd: 0
         }));
@@ -160,7 +147,7 @@ test_insn! {
     test_orr_immediate(0x400440B2) |insn| {
         assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
             imm: 3,
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             rn: 2,
             rd: 0
         }));
@@ -169,7 +156,7 @@ test_insn! {
     test_orr_immediate_32bit(0x40040032) |insn| {
         assert_eq!(insn, Instruction::OrrImm(LogicalImmOp {
             imm: 3,
-            register_type: RegisterType::W,
+            register: RegisterType::W,
             rn: 2,
             rd: 0
         }));
@@ -178,7 +165,7 @@ test_insn! {
     test_and_immediate_32bit(0x00040012) |insn| {
         assert_eq!(insn, Instruction::AndImm(LogicalImmOp {
             imm: 3,
-            register_type: RegisterType::W,
+            register: RegisterType::W,
             rn: 0,
             rd: 0
         }));
@@ -188,7 +175,7 @@ test_insn! {
         assert_eq!(insn, Instruction::AndImm(LogicalImmOp {
             rd: 0,
             rn: 0,
-            register_type: RegisterType::X,
+            register: RegisterType::X,
             imm: 3,
         }));
     };
