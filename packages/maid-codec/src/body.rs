@@ -11,6 +11,11 @@ define_body_structs! {
     #[derive(Copy)]
     struct UnconditionalBranch = offset: u64
 
+    struct CompareAndBranchImm =
+        rt: u8,
+        register: RegisterType,
+        offset: u64
+
     struct BitfieldImm =
         imms: u8,
         immr: u8,

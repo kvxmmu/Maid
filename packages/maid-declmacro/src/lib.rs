@@ -4,7 +4,9 @@ macro_rules! define_body_structs {
         $(
             #[derive( $($derive_path:path),* )]
         )?
-        struct $name:ident = $($field:ident: $type:ty),*
+        struct $name:ident = $(
+            $field:ident: $type:ty
+        ),*
     )*) => {
         $(
             #[derive(

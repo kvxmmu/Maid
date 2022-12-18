@@ -9,8 +9,14 @@ pub type BufSpan = std::ops::Range<usize>;
 pub enum Instruction {
     Udf,
 
-    AdrpImm { imm: u64, rd: u8 },
-    AdrImm { imm: u64, rd: u8 },
+    AdrpImm {
+        imm: u64,
+        rd: u8,
+    },
+    AdrImm {
+        imm: u64,
+        rd: u8,
+    },
 
     AddImm(ArithmeticImmOp),
     SubImm(ArithmeticImmOp),
@@ -36,8 +42,22 @@ pub enum Instruction {
     BImm(UnconditionalBranch),
     BlImm(UnconditionalBranch),
 
-    Unallocated { block: Block },
-    UnallocatedSpan { span: BufSpan },
+    Cbz(CompareAndBranchImm),
+    Cbnz(CompareAndBranchImm),
+
+    TestZeroImmediate {
+        offset: u64,
+        rt: u8,
+        bit_pos: u8,
+        not: bool,
+    },
+
+    Unallocated {
+        block: Block,
+    },
+    UnallocatedSpan {
+        span: BufSpan,
+    },
 }
 
 impl RegisterType {
