@@ -13,6 +13,17 @@ pub enum RegisterType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BitfieldImm {
+    pub imms: u8,
+    pub immr: u8,
+    pub rd: u8,
+    pub rn: u8,
+
+    pub wmask: u64,
+    pub tmask: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArithmeticImmOp {
     pub rd: u8,
     pub rn: u8,
@@ -28,6 +39,16 @@ pub struct TaggedArithmeticOp {
     pub uimm4: u8,
 
     pub offset: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExtractImm {
+    pub rn: u8,
+    pub rd: u8,
+    pub rm: u8,
+    pub lsb: u8,
+
+    pub register: RegisterType,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,6 +89,12 @@ pub enum Instruction {
     MovNImmediate(MoveWideImm),
     MovZImmediate(MoveWideImm),
     MovKImmediate(MoveWideImm),
+
+    SbfmImm(BitfieldImm),
+    BfmImm(BitfieldImm),
+    UbfmImm(BitfieldImm),
+
+    ExtrImm(ExtractImm),
 
     Unallocated { block: Block },
     UnallocatedSpan { span: BufSpan },

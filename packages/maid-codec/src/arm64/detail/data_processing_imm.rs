@@ -1,6 +1,8 @@
 use {
     crate::instruction::{
         ArithmeticImmOp,
+        BitfieldImm,
+        ExtractImm,
         Instruction,
         LogicalImmOp,
         MoveWideImm,
@@ -12,6 +14,7 @@ use {
         decode_bit_masks,
         lsl64,
         sign_extend64,
+        PossiblyUndefined,
         LOG2_TAG_GRANULE,
     },
 };
@@ -115,13 +118,16 @@ pub const fn decode(block: Block) -> Instruction {
             let imms = block.take_from_to_u32(10, 15) as u64;
 
             let register_type = RegisterType::from_sf(sf);
-            let (imm, _) = decode_bit_masks(
+            let PossiblyUndefined::Defined((imm, _)) = decode_bit_masks(
                 n as u64,
                 imms,
                 immr,
                 true,
                 register_type.as_data_size(),
-            );
+            ) else {
+                return Instruction::Udf;
+            };
+
             let logical = LogicalImmOp {
                 imm,
                 register_type,
@@ -161,7 +167,7 @@ pub const fn decode(block: Block) -> Instruction {
 
             if matches!(register_type, RegisterType::W) && ((hw >> 1) == 1)
             {
-                panic!("undefined");
+                return Instruction::Udf;
             }
 
             let pos = hw << 4;
@@ -188,14 +194,69 @@ pub const fn decode(block: Block) -> Instruction {
 
         // Bitfield
         0b110 => {
-            todo!()
+            let opc = block.take_from_to_u32(29, 30);
+            let immr = block.take_from_to_u32(16, 21);
+            let imms = block.take_from_to_u32(10, 15);
+
+            let rn = block.take_from_to_u32(5, 9) as u8;
+            let rd = block.take_from_to_u32(0, 4) as u8;
+            let n = block.take_single_bool(22);
+            let register = RegisterType::from_sf(sf);
+
+            let PossiblyUndefined::Defined((wmask, tmask)) = decode_bit_masks(
+                n as _,
+                imms as _,
+                immr as _,
+                false,
+                register.as_data_size(),
+            ) else {
+                return Instruction::Udf;
+            };
+
+            let bitfield = BitfieldImm {
+                wmask,
+                tmask,
+                rd,
+                rn,
+                immr: immr as _,
+                imms: imms as _,
+            };
+
+            match opc {
+                _ if !sf && n => Instruction::Unallocated { block },
+
+                0b00 => Instruction::SbfmImm(bitfield),
+                0b01 => Instruction::BfmImm(bitfield),
+                0b10 => Instruction::UbfmImm(bitfield),
+
+                _ => Instruction::Unallocated { block },
+            }
         }
 
         // Extract
         0b111 => {
-            todo!()
+            let op21 = block.take_from_to_u32(29, 30);
+            let (rn, rd, rm) = (
+                block.take_from_to_u32(5, 9) as u8,
+                block.take_from_to_u32(0, 4) as u8,
+                block.take_from_to_u32(16, 20) as u8,
+            );
+            let imms = block.take_from_to_u32(10, 15) as u8;
+            let o0 = block.take_single_bool(21);
+
+            if (op21 == 0) && !o0 {
+                Instruction::ExtrImm(ExtractImm {
+                    rd,
+                    rn,
+                    rm,
+                    lsb: imms as _,
+                    register: RegisterType::from_sf(sf),
+                })
+            } else {
+                Instruction::Unallocated { block }
+            }
         }
 
-        _ => todo!(),
+        _ => Instruction::Udf,
     }
 }

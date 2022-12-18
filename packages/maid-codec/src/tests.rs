@@ -2,6 +2,8 @@ use crate::{
     arm64::decoder::BufferedDecoder,
     instruction::{
         ArithmeticImmOp,
+        BitfieldImm,
+        ExtractImm,
         Instruction,
         LogicalImmOp,
         MoveWideImm,
@@ -32,6 +34,37 @@ macro_rules! test_insn {
 }
 
 test_insn! {
+    test_sbfm_imm(0x4A784A93) |insn| {
+        assert_eq!(insn, Instruction::SbfmImm(BitfieldImm {
+            imms: 30,
+            immr: 10,
+            rd: 10,
+            rn: 2,
+            wmask: 18428729675202166783,
+            tmask: 31
+        }));
+    };
+
+    test_extr32_imm(0x20288213) |insn| {
+        assert_eq!(insn, Instruction::ExtrImm(ExtractImm {
+            rn: 1,
+            rd: 0,
+            rm: 2,
+            lsb: 10,
+            register: RegisterType::W
+        }));
+    };
+
+    test_extr64_imm(0x2078C293) |insn| {
+        assert_eq!(insn, Instruction::ExtrImm(ExtractImm {
+            rn: 1,
+            rd: 0,
+            rm: 2,
+            lsb: 30,
+            register: RegisterType::X
+        }));
+    };
+
     test_movk_immediate(0x410180F2) |insn| {
         assert_eq!(insn, Instruction::MovKImmediate(MoveWideImm {
             register: RegisterType::X,

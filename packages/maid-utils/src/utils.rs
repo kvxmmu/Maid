@@ -1,3 +1,9 @@
+#[derive(Debug)]
+pub enum PossiblyUndefined<T> {
+    Defined(T),
+    Undefined,
+}
+
 pub const LOG2_TAG_GRANULE: u64 = 4;
 pub const TAG_GRANULE: u64 = 1 << LOG2_TAG_GRANULE;
 
@@ -47,7 +53,7 @@ pub const fn highest_set_bit(v: u64) -> u64 {
 }
 
 pub const fn replicate_pow2(bits: u64, exp: u64, to_exp: u64) -> u64 {
-    assert!(to_exp.is_power_of_two());
+    assert!(to_exp.is_power_of_two(), "to_exp is not power of two");
 
     replicate_pow2_64(bits, exp) >> (64 - to_exp)
 }
@@ -101,16 +107,15 @@ pub const fn decode_bit_masks(
     immr: u64,
     immediate: bool,
     m: u64,
-) -> (u64, u64) {
+) -> PossiblyUndefined<(u64, u64)> {
     let len = highest_set_bit((imm_n << 6) | ((!imms) & 0b111111));
-
-    assert!(len >= 1);
-    assert!(m >= (1 << len));
+    if (len < 1) || (m < (1 << len)) {
+        return cold_value(PossiblyUndefined::Undefined);
+    }
 
     let levels: u64 = (1 << len) - 1; // bits(6)
-
     if immediate && ((imms & levels) == levels) {
-        panic!("undefined");
+        return cold_value(PossiblyUndefined::Undefined);
     }
 
     let (s, r) = (imms & levels, immr & levels);
@@ -125,7 +130,7 @@ pub const fn decode_bit_masks(
     let wmask = replicate_pow2(welem.rotate_right(r as u32), esize, m);
     let tmask = replicate_pow2(telem, esize, m);
 
-    (wmask, tmask)
+    PossiblyUndefined::Defined((wmask, tmask))
 }
 
 pub const fn ones(n: u64) -> u64 {

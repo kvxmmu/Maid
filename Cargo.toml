@@ -1,5 +1,10 @@
+[package]
+name = "maid"
+version = "0.1.0"
+edition = "2021"
+
 [workspace]
-members = ["maid-codec", "maid-jit", "maid-utils", "maid-vm", "maid"]
+members = ["packages/*"]
 
 [workspace.dependencies]
 static_assertions = "1.1.0"

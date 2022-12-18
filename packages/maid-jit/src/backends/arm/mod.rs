@@ -4,13 +4,8 @@ use crate::backend::{
     IBackend,
 };
 
+#[derive(Default)]
 pub struct Backend {}
-
-impl Default for Backend {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl IBackend for Backend {
     fn info(&self) -> BackendInfo {
