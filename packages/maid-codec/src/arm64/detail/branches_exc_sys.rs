@@ -110,8 +110,8 @@ pub const fn decode(block: Block) -> Instruction {
             }
 
             let (sysinf_lhs, sysinf_rhs) =
-                ((op1 >> 11), (op1 >> 8) & 0b11);
-            if (sysinf_lhs == 0b0100) && (sysinf_rhs == 0b01) {
+                (op1 & 0x3c00, (op1 >> 8) & 0b11);
+            if (sysinf_lhs == 0x1000) && (sysinf_rhs == 0b01) {
                 // System instructions
                 let l = block.take_single_bool(21);
                 let op1 = block.take_from_to_u32(16, 18);
@@ -135,38 +135,6 @@ pub const fn decode(block: Block) -> Instruction {
                     Instruction::Sys(sys)
                 } else {
                     Instruction::Sysl(sys)
-                };
-            }
-
-            let (sysregmv_lhs, sysregmv_rhs) =
-                ((op1 >> 10), (op1 >> 8) & 0b1);
-            if (sysregmv_lhs == 0b0100) && (sysregmv_rhs == 1) {
-                // System register move
-                let l = block.take_single_bool(21);
-                let op1 = block.take_from_to_u32(16, 18);
-                let op2 = block.take_from_to_u32(5, 7);
-                let rt = block.take_from_to_u32(0, 4) as u8;
-
-                let o0 = block.take_single_bool(19) as u8;
-
-                let (crn, crm) = (
-                    block.take_from_to_u32(12, 15) as u8,
-                    block.take_from_to_u32(8, 11) as u8,
-                );
-
-                let sysregm = SysRegMove {
-                    sys_op0: o0 | 0b10,
-                    sys_op1: op1 as u8,
-                    sys_op2: op2 as u8,
-                    sys_crn: crn,
-                    sys_crm: crm,
-                    rt,
-                };
-
-                return if l {
-                    Instruction::MsrReg(sysregm)
-                } else {
-                    Instruction::Mrs(sysregm)
                 };
             }
 
@@ -281,6 +249,38 @@ pub const fn decode(block: Block) -> Instruction {
                     },
 
                     _ => todo!(),
+                };
+            }
+
+            let (sysregmv_lhs, sysregmv_rhs) =
+                ((op1 >> 10), (op1 >> 8) & 0b1);
+            if (sysregmv_lhs == 0b0100) && (sysregmv_rhs == 1) {
+                // System register move
+                let l = block.take_single_bool(21);
+                let op1 = block.take_from_to_u32(16, 18);
+                let op2 = block.take_from_to_u32(5, 7);
+                let rt = block.take_from_to_u32(0, 4) as u8;
+
+                let o0 = block.take_single_bool(19) as u8;
+
+                let (crn, crm) = (
+                    block.take_from_to_u32(12, 15) as u8,
+                    block.take_from_to_u32(8, 11) as u8,
+                );
+
+                let sysregm = SysRegMove {
+                    sys_op0: o0 | 0b10,
+                    sys_op1: op1 as u8,
+                    sys_op2: op2 as u8,
+                    sys_crn: crn,
+                    sys_crm: crm,
+                    rt,
+                };
+
+                return if l {
+                    Instruction::MsrReg(sysregm)
+                } else {
+                    Instruction::Mrs(sysregm)
                 };
             }
 

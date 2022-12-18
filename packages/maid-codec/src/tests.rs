@@ -15,6 +15,10 @@ use crate::{
 };
 
 test_insn! {
+    test_ret(0xC0035FD6) |insn| {
+        assert_eq!(insn, Instruction::Ret { rn: 30 });
+    };
+
     test_b_imm(0x19000014) |insn| {
         assert_eq!(insn, Instruction::BImm(UnconditionalBranch {
             offset: 100

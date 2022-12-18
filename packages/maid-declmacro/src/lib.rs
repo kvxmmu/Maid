@@ -90,7 +90,7 @@ macro_rules! test_insn {
                     ((insn >> 24) & 0xff) as _,
                 ];
                 let mut decoder = BufferedDecoder::new(&data);
-                let $insn_name = decoder.decode_next().unwrap();
+                let (_, $insn_name) = decoder.decode_next().unwrap();
 
                 $e
             }
