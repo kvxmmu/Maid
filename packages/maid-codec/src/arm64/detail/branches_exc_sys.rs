@@ -6,6 +6,8 @@ use maid_utils::{
 use crate::{
     body::{
         CompareAndBranchImm,
+        CondBranchImm,
+        ConditionBits,
         RegisterType,
         UnconditionalBranch,
     },
@@ -19,7 +21,31 @@ pub const fn decode(block: Block) -> Instruction {
 
     match op0 {
         // Conditional branch (immediate)
-        0b010 => todo!(),
+        0b010 => {
+            if (op1 & (1 << 13)) != 0 {
+                return Instruction::Udf;
+            }
+
+            let (false, o1) =
+                (block.take_single_bool(4), block.take_single_bool(24)) else {
+                return Instruction::Unallocated { block };
+            };
+
+            let imm19 = block.take_from_to_u32(5, 23);
+            let offset = sign_extend64((imm19 << 2) as u64, 20);
+            let Some(cond) = ConditionBits::try_from_u8(
+                block.take_from_to_u32(0, 3) as _
+            ) else {
+                return Instruction::Udf;
+            };
+            let cond_branch = CondBranchImm { offset, cond };
+
+            if o1 {
+                Instruction::BCCond(cond_branch)
+            } else {
+                Instruction::BCond(cond_branch)
+            }
+        }
 
         // Bunch of instructions
         0b110 => todo!(),

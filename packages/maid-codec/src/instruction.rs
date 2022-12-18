@@ -45,6 +45,9 @@ pub enum Instruction {
     Cbz(CompareAndBranchImm),
     Cbnz(CompareAndBranchImm),
 
+    BCond(CondBranchImm),
+    BCCond(CondBranchImm),
+
     TestZeroImmediate {
         offset: u64,
         rt: u8,
