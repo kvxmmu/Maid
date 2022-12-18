@@ -11,6 +11,7 @@ use crate::{
         DcpsIndex,
         ExceptionGenImm,
         RegisterType,
+        SysRegMove,
         UnconditionalBranch,
     },
     instruction::Instruction,
@@ -120,7 +121,32 @@ pub const fn decode(block: Block) -> Instruction {
                 ((op1 >> 10), (op1 >> 8) & 0b1);
             if (sysregmv_lhs == 0b0100) && (sysregmv_rhs == 1) {
                 // System register move
-                todo!()
+                let l = block.take_single_bool(21);
+                let op1 = block.take_from_to_u32(16, 18);
+                let op2 = block.take_from_to_u32(5, 7);
+                let rt = block.take_from_to_u32(0, 4) as u8;
+
+                let o0 = block.take_single_bool(19) as u8;
+
+                let (crn, crm) = (
+                    block.take_from_to_u32(12, 15) as u8,
+                    block.take_from_to_u32(8, 11) as u8,
+                );
+
+                let sysregm = SysRegMove {
+                    sys_op0: o0 + 2,
+                    sys_op1: op1 as u8,
+                    sys_op2: op2 as u8,
+                    sys_crn: crn,
+                    sys_crm: crm,
+                    rt,
+                };
+
+                return if l {
+                    Instruction::MsrReg(sysregm)
+                } else {
+                    Instruction::Mrs(sysregm)
+                };
             }
 
             if (op1 >> 13) == 1 {

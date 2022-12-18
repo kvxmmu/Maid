@@ -71,6 +71,9 @@ pub enum Instruction {
     Hvc(ExceptionGenImm),
     Smc(ExceptionGenImm),
 
+    MsrReg(SysRegMove),
+    Mrs(SysRegMove),
+
     Unallocated {
         block: Block,
     },
