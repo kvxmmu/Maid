@@ -1,3 +1,54 @@
+pub use paste as __paste;
+pub use static_assertions as __sa;
+
+#[macro_export]
+macro_rules! define_named_conv_enum {
+    (
+        $(
+            enum $name:ident: $repr:ty {
+                $(
+                    $variant:ident = $value:expr
+                ),*
+                $(,)?
+            } range($pat:pat)
+        )*
+    ) => {
+        $(
+            #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+            #[repr($repr)]
+            pub enum $name {
+                $(
+                    $variant = $value
+                ),*
+            }
+
+            impl $name {
+                $crate::__paste::paste! {
+                    pub const fn [<try_from_ $repr>](from: $repr) -> Option<$name> {
+                        $crate::__sa::assert_eq_align!($name, $repr);
+                        $crate::__sa::assert_eq_size!($name, $repr);
+
+                        // TODO: sanity check?
+                        if !matches!(from, $pat) {
+                            return None;
+                        }
+
+                        union U {
+                            i: $repr,
+                            e: $name
+                        }
+
+                        // SAFETY: this is safe since we're sure about enum representation
+                        // and checked range above
+                        // but possibly unsound because range can contain invalid pattern
+                        Some(unsafe { U { i: from }.e })
+                    }
+                }
+            }
+        )*
+    };
+}
+
 #[macro_export]
 macro_rules! define_body_structs {
     ($(
