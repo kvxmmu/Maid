@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ARM64_CC=aarch64-unknown-linux-gnu-gcc
+ARM64_CC="aarch64-unknown-linux-gnu-gcc -march=armv8-a+nofp+nocrypto"
 OBJCOPY=aarch64-unknown-linux-gnu-objcopy
 
 function help() {
