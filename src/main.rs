@@ -4,13 +4,15 @@ use maidness::{
 };
 
 fn main() {
-    let add2 = include_bytes!("../misc/bins/add2.bintest");
+    let binary: &[u8] = &0x21030010u32.to_be_bytes(); //include_bytes!("../misc/bins/add2.bintest");
 
     let mut memory = Memory::new(0x80000000, 4096);
-    memory.data_mut()[..add2.len()].copy_from_slice(add2);
+    memory.data_mut()[..binary.len()].copy_from_slice(binary);
 
     let mut unit = Unit::new(0, &memory);
-    unit.jump_to(0x80000000);
 
-    println!("Execute: {}", unit.execute());
+    unit.jump_to(0x80000000);
+    unit.execute();
+
+    assert_eq!(unit.registers.read_general(1), 0x80000064);
 }

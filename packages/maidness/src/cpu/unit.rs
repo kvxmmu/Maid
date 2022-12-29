@@ -15,7 +15,7 @@ pub struct Unit<'a> {
 }
 
 impl<'a> Unit<'a> {
-    pub fn execute(&mut self) -> u32 {
+    pub fn execute(&mut self) {
         let insn = self
             .memory
             .read_u32_le(self.memory.abs_to_rel(self.registers.pc));
@@ -23,7 +23,6 @@ impl<'a> Unit<'a> {
 
         self.registers.pc += 4;
         self.registers.general[31] = 0;
-        insn
     }
 }
 
