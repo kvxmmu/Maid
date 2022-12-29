@@ -9,6 +9,6 @@ pub mod utils;
 
 pub mod cpu;
 
-pub mod decoder;
+pub mod performer;
 
 mod std;

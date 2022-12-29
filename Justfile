@@ -8,10 +8,17 @@ objdump := "aarch64-unknown-linux-gnu-objdump"
 alias br := build-release
 alias bm := build-misc
 alias dis := disassemble
+alias r := run
+alias rr := run-release
+
+run-release:
+    cargo run --release
+
+run:
+    cargo run
 
 disassemble binfile:
     {{objdump}} -b binary -D -m aarch64 misc/bins/{{binfile}}.bintest
-    
 
 # Build test binaries for the emulator
 build-misc:

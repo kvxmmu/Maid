@@ -1,10 +1,10 @@
 use super::registers::CpuRegisters;
 use crate::{
-    decoder::{
+    mem::Memory,
+    performer::{
         block::Block,
         top_level::table::jump_top_level,
     },
-    mem::Memory,
 };
 
 pub struct Unit<'a> {

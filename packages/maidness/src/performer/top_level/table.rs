@@ -1,7 +1,7 @@
 use super::data_processing_immediate::*;
 use crate::{
     cpu::unit::Unit,
-    decoder::{
+    performer::{
         block::Block,
         fns::*,
     },
