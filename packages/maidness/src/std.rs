@@ -1,13 +1,12 @@
-macro_rules! uses_alloc {
+macro_rules! uses {
     (
-        $(
+        $prefix:ident: $(
             $path:path
         ),*
-        $(,)?
     ) => {
         $(
             #[cfg(feature = "no-std")]
-            pub use ::alloc::{ $path };
+            pub use ::$prefix::{ $path };
 
             #[cfg(not(feature = "no-std"))]
             pub use ::std::{ $path };
@@ -15,4 +14,5 @@ macro_rules! uses_alloc {
     };
 }
 
-uses_alloc!(vec::Vec, vec);
+uses!(alloc: vec::Vec, vec);
+uses!(core: sync::atomic::AtomicU8, fmt, slice);
